@@ -4,7 +4,6 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +12,7 @@ import com.accolite.pru.health.AuthApp.security.JwtTokenProvider;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.jodah.expiringmap.ExpiringMap;
 
 /**
@@ -26,9 +26,8 @@ import net.jodah.expiringmap.ExpiringMap;
  */
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class LoggedOutJwtTokenCache {
-
-    private static final Logger logger = Logger.getLogger(LoggedOutJwtTokenCache.class);
 
     @Getter(lazy = true)
     private final ExpiringMap<String, OnUserLogoutSuccessEvent> tokenEventMap = ExpiringMap.builder()
@@ -44,12 +43,12 @@ public class LoggedOutJwtTokenCache {
     public void markLogoutEventForToken(OnUserLogoutSuccessEvent event) {
         String token = event.getToken();
         if (getTokenEventMap().containsKey(token)) {
-            logger.info(String.format("Log out token for user [%s] is already present in the cache", event.getUserEmail()));
+        	log.info(String.format("Log out token for user [%s] is already present in the cache", event.getUserEmail()));
 
         } else {
             Date tokenExpiryDate = tokenProvider.getTokenExpiryFromJWT(token);
             long ttlForToken = getTTLForToken(tokenExpiryDate);
-            logger.info(String.format("Logout token cache set for [%s] with a TTL of [%s] seconds. Token is due expiry at [%s]", event.getUserEmail(), ttlForToken, tokenExpiryDate));
+            log.info(String.format("Logout token cache set for [%s] with a TTL of [%s] seconds. Token is due expiry at [%s]", event.getUserEmail(), ttlForToken, tokenExpiryDate));
             getTokenEventMap().put(token, event, ttlForToken, TimeUnit.SECONDS);
         }
     }

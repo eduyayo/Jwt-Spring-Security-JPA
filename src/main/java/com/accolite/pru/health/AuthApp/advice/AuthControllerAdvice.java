@@ -13,21 +13,10 @@
  */
 package com.accolite.pru.health.AuthApp.advice;
 
-import com.accolite.pru.health.AuthApp.exception.AppException;
-import com.accolite.pru.health.AuthApp.exception.BadRequestException;
-import com.accolite.pru.health.AuthApp.exception.InvalidTokenRequestException;
-import com.accolite.pru.health.AuthApp.exception.MailSendException;
-import com.accolite.pru.health.AuthApp.exception.PasswordResetException;
-import com.accolite.pru.health.AuthApp.exception.PasswordResetLinkException;
-import com.accolite.pru.health.AuthApp.exception.ResourceAlreadyInUseException;
-import com.accolite.pru.health.AuthApp.exception.ResourceNotFoundException;
-import com.accolite.pru.health.AuthApp.exception.TokenRefreshException;
-import com.accolite.pru.health.AuthApp.exception.UpdatePasswordException;
-import com.accolite.pru.health.AuthApp.exception.UserLoginException;
-import com.accolite.pru.health.AuthApp.exception.UserLogoutException;
-import com.accolite.pru.health.AuthApp.exception.UserRegistrationException;
-import com.accolite.pru.health.AuthApp.model.payload.ApiResponse;
-import org.apache.log4j.Logger;
+import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -44,14 +33,26 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
 
-import java.util.List;
-import java.util.Locale;
-import java.util.stream.Collectors;
+import com.accolite.pru.health.AuthApp.exception.AppException;
+import com.accolite.pru.health.AuthApp.exception.BadRequestException;
+import com.accolite.pru.health.AuthApp.exception.InvalidTokenRequestException;
+import com.accolite.pru.health.AuthApp.exception.MailSendException;
+import com.accolite.pru.health.AuthApp.exception.PasswordResetException;
+import com.accolite.pru.health.AuthApp.exception.PasswordResetLinkException;
+import com.accolite.pru.health.AuthApp.exception.ResourceAlreadyInUseException;
+import com.accolite.pru.health.AuthApp.exception.ResourceNotFoundException;
+import com.accolite.pru.health.AuthApp.exception.TokenRefreshException;
+import com.accolite.pru.health.AuthApp.exception.UpdatePasswordException;
+import com.accolite.pru.health.AuthApp.exception.UserLoginException;
+import com.accolite.pru.health.AuthApp.exception.UserLogoutException;
+import com.accolite.pru.health.AuthApp.exception.UserRegistrationException;
+import com.accolite.pru.health.AuthApp.model.payload.ApiResponse;
+
+import lombok.extern.slf4j.Slf4j;
 
 @RestControllerAdvice
+@Slf4j
 public class AuthControllerAdvice {
-
-    private static final Logger logger = Logger.getLogger(AuthControllerAdvice.class);
 
     private final MessageSource messageSource;
 
@@ -91,7 +92,7 @@ public class AuthControllerAdvice {
     private String resolveLocalizedErrorMessage(ObjectError objectError) {
         Locale currentLocale = LocaleContextHolder.getLocale();
         String localizedErrorMessage = messageSource.getMessage(objectError, currentLocale);
-        logger.info(localizedErrorMessage);
+        log.info(localizedErrorMessage);
         return localizedErrorMessage;
     }
 

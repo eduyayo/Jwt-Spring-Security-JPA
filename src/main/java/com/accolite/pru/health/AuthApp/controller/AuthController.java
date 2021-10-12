@@ -17,7 +17,6 @@ import java.util.Optional;
 
 import javax.validation.Valid;
 
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseEntity;
@@ -58,14 +57,14 @@ import com.accolite.pru.health.AuthApp.service.AuthService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/api/auth")
 @Api(value = "Authorization Rest API", description = "Defines endpoints that can be hit only when the user is not logged in. It's not secured by default.")
-
+@Slf4j
 public class AuthController {
 
-    private static final Logger logger = Logger.getLogger(AuthController.class);
     private final AuthService authService;
     private final JwtTokenProvider tokenProvider;
     private final ApplicationEventPublisher applicationEventPublisher;
@@ -110,7 +109,7 @@ public class AuthController {
                 .orElseThrow(() -> new UserLoginException("Couldn't login user [" + loginRequest + "]"));
 
         CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
-        logger.info("Logged in User returned [API]: " + customUserDetails.getUsername());
+        log.info("Logged in User returned [API]: " + customUserDetails.getUsername());
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         return authService.createAndPersistRefreshTokenForDevice(authentication, loginRequest)
@@ -135,7 +134,7 @@ public class AuthController {
                     UriComponentsBuilder urlBuilder = ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/auth/registrationConfirmation");
                     OnUserRegistrationCompleteEvent onUserRegistrationCompleteEvent = new OnUserRegistrationCompleteEvent(user, urlBuilder);
                     applicationEventPublisher.publishEvent(onUserRegistrationCompleteEvent);
-                    logger.info("Registered User returned [API[: " + user);
+                    log.info("Registered User returned [API[: " + user);
                     return ResponseEntity.ok(new ApiResponse(true, "User registered successfully. Check your email for verification"));
                 })
                 .orElseThrow(() -> new UserRegistrationException(registrationRequest.getEmail(), "Missing user object in database"));
@@ -233,7 +232,7 @@ public class AuthController {
         return authService.refreshJwtToken(tokenRefreshRequest)
                 .map(updatedToken -> {
                     String refreshToken = tokenRefreshRequest.getRefreshToken();
-                    logger.info("Created new Jwt Auth token: " + updatedToken);
+                    log.info("Created new Jwt Auth token: " + updatedToken);
                     return ResponseEntity.ok(new JwtAuthenticationResponse(updatedToken, refreshToken, tokenProvider.getExpiryDuration()));
                 })
                 .orElseThrow(() -> new TokenRefreshException(tokenRefreshRequest.getRefreshToken(), "Unexpected error during token refresh. Please logout and login again."));

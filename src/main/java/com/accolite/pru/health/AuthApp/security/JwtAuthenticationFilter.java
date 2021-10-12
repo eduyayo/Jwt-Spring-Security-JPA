@@ -21,7 +21,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -34,10 +33,10 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.accolite.pru.health.AuthApp.service.CustomUserDetailsService;
 
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-
-    private static final Logger log = Logger.getLogger(JwtAuthenticationFilter.class);
 
     @Value("${app.jwt.header.name}")
     private String tokenRequestHeader;

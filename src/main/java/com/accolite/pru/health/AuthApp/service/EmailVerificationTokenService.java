@@ -13,24 +13,26 @@
  */
 package com.accolite.pru.health.AuthApp.service;
 
+import java.time.Instant;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
 import com.accolite.pru.health.AuthApp.exception.InvalidTokenRequestException;
 import com.accolite.pru.health.AuthApp.model.TokenStatus;
 import com.accolite.pru.health.AuthApp.model.User;
 import com.accolite.pru.health.AuthApp.model.token.EmailVerificationToken;
 import com.accolite.pru.health.AuthApp.repository.EmailVerificationTokenRepository;
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 
-import java.time.Instant;
-import java.util.Optional;
-import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class EmailVerificationTokenService {
 
-    private static final Logger logger = Logger.getLogger(EmailVerificationTokenService.class);
     private final EmailVerificationTokenRepository emailVerificationTokenRepository;
     @Value("${app.token.email.verification.duration}")
     private Long emailVerificationTokenExpiryDuration;
@@ -50,7 +52,7 @@ public class EmailVerificationTokenService {
         emailVerificationToken.setTokenStatus(TokenStatus.STATUS_PENDING);
         emailVerificationToken.setUser(user);
         emailVerificationToken.setExpiryDate(Instant.now().plusMillis(emailVerificationTokenExpiryDuration));
-        logger.info("Generated Email verification token [" + emailVerificationToken + "]");
+        log.info("Generated Email verification token [" + emailVerificationToken + "]");
         emailVerificationTokenRepository.save(emailVerificationToken);
     }
 
@@ -60,7 +62,7 @@ public class EmailVerificationTokenService {
     public EmailVerificationToken updateExistingTokenWithNameAndExpiry(EmailVerificationToken existingToken) {
         existingToken.setTokenStatus(TokenStatus.STATUS_PENDING);
         existingToken.setExpiryDate(Instant.now().plusMillis(emailVerificationTokenExpiryDuration));
-        logger.info("Updated Email verification token [" + existingToken + "]");
+        log.info("Updated Email verification token [" + existingToken + "]");
         return save(existingToken);
     }
 

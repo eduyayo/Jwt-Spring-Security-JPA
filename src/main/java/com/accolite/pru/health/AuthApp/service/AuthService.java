@@ -13,16 +13,8 @@
  */
 package com.accolite.pru.health.AuthApp.service;
 
-import com.accolite.pru.health.AuthApp.exception.*;
-import com.accolite.pru.health.AuthApp.model.CustomUserDetails;
-import com.accolite.pru.health.AuthApp.model.PasswordResetToken;
-import com.accolite.pru.health.AuthApp.model.User;
-import com.accolite.pru.health.AuthApp.model.UserDevice;
-import com.accolite.pru.health.AuthApp.model.payload.*;
-import com.accolite.pru.health.AuthApp.model.token.EmailVerificationToken;
-import com.accolite.pru.health.AuthApp.model.token.RefreshToken;
-import com.accolite.pru.health.AuthApp.security.JwtTokenProvider;
-import org.apache.log4j.Logger;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -30,12 +22,31 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import com.accolite.pru.health.AuthApp.exception.PasswordResetLinkException;
+import com.accolite.pru.health.AuthApp.exception.ResourceAlreadyInUseException;
+import com.accolite.pru.health.AuthApp.exception.ResourceNotFoundException;
+import com.accolite.pru.health.AuthApp.exception.TokenRefreshException;
+import com.accolite.pru.health.AuthApp.exception.UpdatePasswordException;
+import com.accolite.pru.health.AuthApp.model.CustomUserDetails;
+import com.accolite.pru.health.AuthApp.model.PasswordResetToken;
+import com.accolite.pru.health.AuthApp.model.User;
+import com.accolite.pru.health.AuthApp.model.UserDevice;
+import com.accolite.pru.health.AuthApp.model.payload.LoginRequest;
+import com.accolite.pru.health.AuthApp.model.payload.PasswordResetLinkRequest;
+import com.accolite.pru.health.AuthApp.model.payload.PasswordResetRequest;
+import com.accolite.pru.health.AuthApp.model.payload.RegistrationRequest;
+import com.accolite.pru.health.AuthApp.model.payload.TokenRefreshRequest;
+import com.accolite.pru.health.AuthApp.model.payload.UpdatePasswordRequest;
+import com.accolite.pru.health.AuthApp.model.token.EmailVerificationToken;
+import com.accolite.pru.health.AuthApp.model.token.RefreshToken;
+import com.accolite.pru.health.AuthApp.security.JwtTokenProvider;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class AuthService {
 
-    private static final Logger logger = Logger.getLogger(AuthService.class);
     private final UserService userService;
     private final JwtTokenProvider tokenProvider;
     private final RefreshTokenService refreshTokenService;
@@ -65,10 +76,10 @@ public class AuthService {
     public Optional<User> registerUser(RegistrationRequest newRegistrationRequest) {
         String newRegistrationRequestEmail = newRegistrationRequest.getEmail();
         if (emailAlreadyExists(newRegistrationRequestEmail)) {
-            logger.error("Email already exists: " + newRegistrationRequestEmail);
+        	log.error("Email already exists: " + newRegistrationRequestEmail);
             throw new ResourceAlreadyInUseException("Email", "Address", newRegistrationRequestEmail);
         }
-        logger.info("Trying to register new user [" + newRegistrationRequestEmail + "]");
+        log.info("Trying to register new user [" + newRegistrationRequestEmail + "]");
         User newUser = userService.createUser(newRegistrationRequest);
         User registeredNewUser = userService.save(newUser);
         return Optional.ofNullable(registeredNewUser);
@@ -110,7 +121,7 @@ public class AuthService {
 
         User registeredUser = emailVerificationToken.getUser();
         if (registeredUser.getEmailVerified()) {
-            logger.info("User [" + emailToken + "] already registered.");
+        	log.info("User [" + emailToken + "] already registered.");
             return Optional.of(registeredUser);
         }
 
@@ -155,7 +166,7 @@ public class AuthService {
                 .orElseThrow(() -> new UpdatePasswordException(email, "No matching user found"));
 
         if (!currentPasswordMatches(currentUser, updatePasswordRequest.getOldPassword())) {
-            logger.info("Current password is invalid for [" + currentUser.getPassword() + "]");
+        	log.info("Current password is invalid for [" + currentUser.getPassword() + "]");
             throw new UpdatePasswordException(currentUser.getEmail(), "Invalid current password");
         }
         String newPassword = passwordEncoder.encode(updatePasswordRequest.getNewPassword());
