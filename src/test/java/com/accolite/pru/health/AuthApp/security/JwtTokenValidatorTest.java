@@ -11,8 +11,10 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import com.accolite.pru.health.AuthApp.cache.LoggedOutJwtTokenCache;
 import com.accolite.pru.health.AuthApp.event.OnUserLogoutSuccessEvent;
@@ -27,21 +29,23 @@ public class JwtTokenValidatorTest {
     @Mock
     private LoggedOutJwtTokenCache loggedOutTokenCache;
 
+    @InjectMocks
     private JwtTokenProvider tokenProvider;
 
+    @InjectMocks
     private JwtTokenValidator tokenValidator;
 
     @BeforeEach
     public void setUp() {
-        this.tokenProvider = new JwtTokenProvider(JWT_SECRET, JWT_EXPIRY_IN_MS);
-        this.tokenValidator = new JwtTokenValidator(JWT_SECRET, loggedOutTokenCache);
+    	ReflectionTestUtils.setField(tokenProvider, "jwtSecret", JWT_SECRET);
+    	ReflectionTestUtils.setField(tokenProvider, "jwtExpirationInMs", JWT_EXPIRY_IN_MS);
+    	ReflectionTestUtils.setField(tokenValidator, "jwtSecret", JWT_SECRET);
+
     }
 
     @Test
     public void testValidateTokenThrowsExceptionWhenTokenIsDamaged() {
         String token = tokenProvider.generateTokenFromUserId(100L);
-//        OnUserLogoutSuccessEvent logoutEvent = stubLogoutEvent("U1", token);
-//        when(loggedOutTokenCache.getLogoutEventForToken(token)).thenReturn(logoutEvent);
 
         InvalidTokenRequestException thrown = assertThrows(InvalidTokenRequestException.class, () -> {
         	tokenValidator.validateToken(token + "-Damage");
@@ -53,8 +57,6 @@ public class JwtTokenValidatorTest {
     public void testValidateTokenThrowsExceptionWhenTokenIsExpired() throws InterruptedException {
         String token = tokenProvider.generateTokenFromUserId(123L);
         TimeUnit.MILLISECONDS.sleep(JWT_EXPIRY_IN_MS);
-//        OnUserLogoutSuccessEvent logoutEvent = stubLogoutEvent("U1", token);
-//        when(loggedOutTokenCache.getLogoutEventForToken(token)).thenReturn(logoutEvent);
 
         InvalidTokenRequestException thrown = assertThrows(InvalidTokenRequestException.class, () -> {
         	tokenValidator.validateToken(token);

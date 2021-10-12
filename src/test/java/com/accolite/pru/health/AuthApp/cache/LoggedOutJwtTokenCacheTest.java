@@ -24,8 +24,10 @@ import java.util.Date;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import com.accolite.pru.health.AuthApp.event.OnUserLogoutSuccessEvent;
 import com.accolite.pru.health.AuthApp.security.JwtTokenProvider;
@@ -36,11 +38,12 @@ public class LoggedOutJwtTokenCacheTest {
     @Mock
     private JwtTokenProvider mockTokenProvider;
 
+    @InjectMocks
     private LoggedOutJwtTokenCache cache;
 
     @BeforeEach
     public void setUp() {
-        this.cache = new LoggedOutJwtTokenCache(mockTokenProvider, 10);
+    	ReflectionTestUtils.setField(cache, "maxSize", 10);
     }
 
     @Test

@@ -16,19 +16,17 @@ import com.accolite.pru.health.AuthApp.model.CustomUserDetails;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
 @Component
 public class JwtTokenProvider {
 
     private static final String AUTHORITIES_CLAIM = "authorities";
 
     @Value("${app.jwt.secret}")
-    private final String jwtSecret;
+    private String jwtSecret;
 
     @Value("${app.jwt.expiration}")
-    private final long jwtExpirationInMs;
+    private long jwtExpirationInMs;
 
     /**
      * Generates a token from a principal object. Embed the refresh token in the jwt

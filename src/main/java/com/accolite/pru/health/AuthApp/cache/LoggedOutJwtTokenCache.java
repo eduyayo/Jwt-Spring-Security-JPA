@@ -39,7 +39,7 @@ public class LoggedOutJwtTokenCache {
     private final JwtTokenProvider tokenProvider;
 
     @Value("${app.cache.logoutToken.maxSize}")
-    private final int maxSize;
+    private int maxSize;
 
     public void markLogoutEventForToken(OnUserLogoutSuccessEvent event) {
         String token = event.getToken();

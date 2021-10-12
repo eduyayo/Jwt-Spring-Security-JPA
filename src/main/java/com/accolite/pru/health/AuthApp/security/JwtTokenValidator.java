@@ -37,7 +37,7 @@ public class JwtTokenValidator {
     private static final Logger logger = Logger.getLogger(JwtTokenValidator.class);
 
     @Value("${app.jwt.secret}")
-    private final String jwtSecret;
+    private String jwtSecret;
 
     private final LoggedOutJwtTokenCache loggedOutTokenCache;
 

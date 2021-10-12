@@ -13,7 +13,14 @@
  */
 package com.accolite.pru.health.AuthApp.security;
 
-import com.accolite.pru.health.AuthApp.service.CustomUserDetailsService;
+import java.io.IOException;
+import java.util.List;
+
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,19 +32,14 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.List;
+import com.accolite.pru.health.AuthApp.service.CustomUserDetailsService;
 
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private static final Logger log = Logger.getLogger(JwtAuthenticationFilter.class);
 
-    @Value("${app.jwt.header}")
+    @Value("${app.jwt.header.name}")
     private String tokenRequestHeader;
 
     @Value("${app.jwt.header.prefix}")
