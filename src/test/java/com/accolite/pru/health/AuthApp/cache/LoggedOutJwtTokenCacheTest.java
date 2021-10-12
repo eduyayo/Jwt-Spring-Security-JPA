@@ -13,22 +13,24 @@
  */
 package com.accolite.pru.health.AuthApp.cache;
 
-import com.accolite.pru.health.AuthApp.event.OnUserLogoutSuccessEvent;
-import com.accolite.pru.health.AuthApp.security.JwtTokenProvider;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-
-import java.time.Instant;
-import java.util.Date;
-
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Instant;
+import java.util.Date;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import com.accolite.pru.health.AuthApp.event.OnUserLogoutSuccessEvent;
+import com.accolite.pru.health.AuthApp.security.JwtTokenProvider;
+
+@ExtendWith(MockitoExtension.class)
 public class LoggedOutJwtTokenCacheTest {
 
     @Mock
@@ -36,10 +38,9 @@ public class LoggedOutJwtTokenCacheTest {
 
     private LoggedOutJwtTokenCache cache;
 
-    @Before
+    @BeforeEach
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
-        this.cache = new LoggedOutJwtTokenCache(10, mockTokenProvider);
+        this.cache = new LoggedOutJwtTokenCache(mockTokenProvider, 10);
     }
 
     @Test
@@ -60,11 +61,12 @@ public class LoggedOutJwtTokenCacheTest {
         when(mockTokenProvider.getTokenExpiryFromJWT("T2")).thenReturn(Date.from(Instant.now().plusSeconds(10)));
 
         cache.markLogoutEventForToken(event);
-        assertNull(cache.getLogoutEventForToken("T1"));
-        assertNotNull(cache.getLogoutEventForToken("T2"));
+        assertThat(cache.getLogoutEventForToken("T1")).isNull();
+        assertThat(cache.getLogoutEventForToken("T2")).isNotNull();
     }
 
     private OnUserLogoutSuccessEvent stubLogoutEvent(String email, String token) {
         return new OnUserLogoutSuccessEvent(email, token, null);
     }
+
 }

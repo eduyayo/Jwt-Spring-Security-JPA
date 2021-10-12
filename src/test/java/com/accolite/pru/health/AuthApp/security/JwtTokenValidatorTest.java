@@ -1,38 +1,28 @@
-/*
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.accolite.pru.health.AuthApp.security;
 
-import com.accolite.pru.health.AuthApp.cache.LoggedOutJwtTokenCache;
-import com.accolite.pru.health.AuthApp.event.OnUserLogoutSuccessEvent;
-import com.accolite.pru.health.AuthApp.exception.InvalidTokenRequestException;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-
-import java.util.concurrent.TimeUnit;
-
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.concurrent.TimeUnit;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import com.accolite.pru.health.AuthApp.cache.LoggedOutJwtTokenCache;
+import com.accolite.pru.health.AuthApp.event.OnUserLogoutSuccessEvent;
+import com.accolite.pru.health.AuthApp.exception.InvalidTokenRequestException;
+
+@ExtendWith(MockitoExtension.class)
 public class JwtTokenValidatorTest {
 
-    private static final String jwtSecret = "testSecret";
-    private static final long jwtExpiryInMs = 2500;
+    private static final String JWT_SECRET = "testSecret";
+    private static final long JWT_EXPIRY_IN_MS = 25000;
 
     @Mock
     private LoggedOutJwtTokenCache loggedOutTokenCache;
@@ -41,37 +31,35 @@ public class JwtTokenValidatorTest {
 
     private JwtTokenValidator tokenValidator;
 
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
-
-    @Before
+    @BeforeEach
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
-        this.tokenProvider = new JwtTokenProvider(jwtSecret, jwtExpiryInMs);
-        this.tokenValidator = new JwtTokenValidator(jwtSecret, loggedOutTokenCache);
+        this.tokenProvider = new JwtTokenProvider(JWT_SECRET, JWT_EXPIRY_IN_MS);
+        this.tokenValidator = new JwtTokenValidator(JWT_SECRET, loggedOutTokenCache);
     }
 
     @Test
     public void testValidateTokenThrowsExceptionWhenTokenIsDamaged() {
         String token = tokenProvider.generateTokenFromUserId(100L);
-        OnUserLogoutSuccessEvent logoutEvent = stubLogoutEvent("U1", token);
-        when(loggedOutTokenCache.getLogoutEventForToken(token)).thenReturn(logoutEvent);
+//        OnUserLogoutSuccessEvent logoutEvent = stubLogoutEvent("U1", token);
+//        when(loggedOutTokenCache.getLogoutEventForToken(token)).thenReturn(logoutEvent);
 
-        thrown.expect(InvalidTokenRequestException.class);
-        thrown.expectMessage("Incorrect signature");
-        tokenValidator.validateToken(token + "-Damage");
+        InvalidTokenRequestException thrown = assertThrows(InvalidTokenRequestException.class, () -> {
+        	tokenValidator.validateToken(token + "-Damage");
+        });
+        assertThat(thrown.getMessage()).startsWith("Incorrect signature: ");
     }
 
     @Test
     public void testValidateTokenThrowsExceptionWhenTokenIsExpired() throws InterruptedException {
         String token = tokenProvider.generateTokenFromUserId(123L);
-        TimeUnit.MILLISECONDS.sleep(jwtExpiryInMs);
-        OnUserLogoutSuccessEvent logoutEvent = stubLogoutEvent("U1", token);
-        when(loggedOutTokenCache.getLogoutEventForToken(token)).thenReturn(logoutEvent);
+        TimeUnit.MILLISECONDS.sleep(JWT_EXPIRY_IN_MS);
+//        OnUserLogoutSuccessEvent logoutEvent = stubLogoutEvent("U1", token);
+//        when(loggedOutTokenCache.getLogoutEventForToken(token)).thenReturn(logoutEvent);
 
-        thrown.expect(InvalidTokenRequestException.class);
-        thrown.expectMessage("Token expired. Refresh required");
-        tokenValidator.validateToken(token);
+        InvalidTokenRequestException thrown = assertThrows(InvalidTokenRequestException.class, () -> {
+        	tokenValidator.validateToken(token);
+        });
+        assertThat(thrown.getMessage()).startsWith("Token expired. Refresh required");
     }
 
     @Test
@@ -80,9 +68,10 @@ public class JwtTokenValidatorTest {
         OnUserLogoutSuccessEvent logoutEvent = stubLogoutEvent("U2", token);
         when(loggedOutTokenCache.getLogoutEventForToken(token)).thenReturn(logoutEvent);
 
-        thrown.expect(InvalidTokenRequestException.class);
-        thrown.expectMessage("Token corresponds to an already logged out user [U2]");
-        tokenValidator.validateToken(token);
+        InvalidTokenRequestException thrown = assertThrows(InvalidTokenRequestException.class, () -> {
+        	tokenValidator.validateToken(token);
+        });
+        assertThat(thrown.getMessage()).startsWith("Token corresponds to an already logged out user [U2]");
     }
 
     @Test

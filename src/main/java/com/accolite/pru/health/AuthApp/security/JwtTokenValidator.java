@@ -13,33 +13,33 @@
  */
 package com.accolite.pru.health.AuthApp.security;
 
+import java.util.Date;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
 import com.accolite.pru.health.AuthApp.cache.LoggedOutJwtTokenCache;
 import com.accolite.pru.health.AuthApp.event.OnUserLogoutSuccessEvent;
 import com.accolite.pru.health.AuthApp.exception.InvalidTokenRequestException;
+
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureException;
 import io.jsonwebtoken.UnsupportedJwtException;
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
-import java.util.Date;
+import lombok.RequiredArgsConstructor;
 
 @Component
+@RequiredArgsConstructor
 public class JwtTokenValidator {
 
     private static final Logger logger = Logger.getLogger(JwtTokenValidator.class);
-    private final String jwtSecret;
-    private final LoggedOutJwtTokenCache loggedOutTokenCache;
 
-    @Autowired
-    public JwtTokenValidator(@Value("${app.jwt.secret}") String jwtSecret, LoggedOutJwtTokenCache loggedOutTokenCache) {
-        this.jwtSecret = jwtSecret;
-        this.loggedOutTokenCache = loggedOutTokenCache;
-    }
+    @Value("${app.jwt.secret}")
+    private final String jwtSecret;
+
+    private final LoggedOutJwtTokenCache loggedOutTokenCache;
 
     /**
      * Validates if a token satisfies the following properties
